@@ -4,26 +4,50 @@ import 'dart:math';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 
+/// # Car
+/// carscrud table
+/// 
+/// @author HeinhtetLinn
 class Car {
+  /// The car id
   int id;
+  /// The car brand
   String? brand;
+  /// The car model
   String? model;
 
+  /// ## constructor
+  /// The user constructor with all arguments 
+  /// 
+  /// [Parameters]:
+  ///  - id       [int]
+  ///  - brand    [String]
+  ///  - model  [String]
   Car(this.id, this.brand, this.model);
 
+  /// [Map<String, dynamic>]
+  /// 
+  /// @return [Car]
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'brand': brand,
-      'model': model,
+      'id': id, //Type: int 
+      'brand': brand, //Type: String
+      'model': model, //Type: String
     };
   }
 }
 
+/// # CarApp
+/// carscrud table
+/// 
+/// @author HeinhtetLinn
 class CarApp {
   late Database _database;
   List<Car> cars = [];
 
+  ///init
+  ///
+  ///The asynchronous function to run the init
   Future<Database> init() async {
 
     databaseFactory = databaseFactoryFfi;
@@ -46,7 +70,10 @@ class CarApp {
     );
   }
 
-  Future<void> run() async {
+  /// command
+  /// 
+  /// The asynchronous function to run the command
+  Future<void> command() async {
     await init();
 
     print('Car Management System');
@@ -78,6 +105,9 @@ class CarApp {
     }
   }
 
+  ///listCars
+  ///
+  ///The asynchronous function to list cars
   Future<void> listCars() async {
     var carsData = await _database.query('carscrud');
     cars = carsData.map((carMap) {
@@ -98,6 +128,9 @@ class CarApp {
     }
   }
 
+  /// createCar
+  /// 
+  /// The asynchronous function to create car
   Future<void> createCar() async {
     stdout.write('Enter car brand: ');
     String? brand = stdin.readLineSync();
@@ -116,6 +149,9 @@ class CarApp {
     print('Car created successfully.');
   }
 
+  ///updateCar
+  ///
+  ///The asynchronous function to update car
   Future<void> updateCar() async {
     stdout.write('Enter car ID to update: ');
     String? input = stdin.readLineSync();
@@ -146,6 +182,9 @@ carIndex == -1) {
     }
   }
 
+  ///deleteCar
+  ///
+  ///The asynchronous function to delete car
   Future<void> deleteCar() async {
     stdout.write('Enter car ID to delete: ');
     String? input = stdin.readLineSync();
@@ -168,5 +207,5 @@ carIndex == -1) {
 
 void main() {
   CarApp carApp = CarApp();
-  carApp.run();
+  carApp.command();
 }
