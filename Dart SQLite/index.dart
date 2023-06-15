@@ -4,78 +4,24 @@ import 'dart:math';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 
-/// # Car
-/// carscrud table
-/// 
-/// @author HeinhtetLinn
-class Car {
-  /// The car id
-  int id;
-  /// The car brand
-  String? brand;
-  /// The car model
-  String? model;
+import 'models/cars.dart';
+import 'models/config/CarApp.dart';
 
-  /// ## constructor
-  /// The user constructor with all arguments 
-  /// 
-  /// [Parameters]:
-  ///  - id       [int]
-  ///  - brand    [String]
-  ///  - model  [String]
-  Car(this.id, this.brand, this.model);
+/// The current project path
+final projectPath = Directory.current.path;
 
-  /// [Map<String, dynamic>]
-  /// 
-  /// @return [Car]
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id, //Type: int 
-      'brand': brand, //Type: String
-      'model': model, //Type: String
-    };
-  }
-}
+/// the CarApp
+final CarApp = CarApp();
 
-/// # CarApp
-/// carscrud table
-/// 
-/// @author HeinhtetLinn
-class CarApp {
-  late Database _database;
-  List<Car> cars = [];
-
-  ///init
-  ///
-  ///The asynchronous function to run the init
-  Future<Database> init() async {
-
-    databaseFactory = databaseFactoryFfi;
-    
-    var databasesPath = await getDatabasesPath();
-    final path = join(databasesPath,"../carscrud.db");
-
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE carscrud(
-            id INTEGER PRIMARY KEY,
-            brand TEXT,
-            model TEXT
-          )
-        ''');
-      },
-    );
-  }
+void main() async {
+  await CarApp.initDatabase();
+  CarApp carApp = CarApp();
+  await carApp.command();
 
   /// command
-  /// 
+  ///
   /// The asynchronous function to run the command
   Future<void> command() async {
-    await init();
-
     print('Car Management System');
     print('Available Options:');
     print('1. list     - to display the list of cars');
@@ -129,7 +75,7 @@ class CarApp {
   }
 
   /// createCar
-  /// 
+  ///
   /// The asynchronous function to create car
   Future<void> createCar() async {
     stdout.write('Enter car brand: ');
@@ -137,6 +83,8 @@ class CarApp {
     stdout.write('Enter car model: ');
     String? model = stdin.readLineSync();
 
+    // Generate an auto-incremented id for the car
+    // You can replace this with your preferred method of generating unique ids
     var randomID = Random();
     var car = Car(randomID.nextInt(1000), brand, model);
 
@@ -158,8 +106,7 @@ class CarApp {
     int id = int.tryParse(input ?? '') ?? 0;
 
     int carIndex = cars.indexWhere((car) => car.id == id);
-    if (
-carIndex == -1) {
+    if (carIndex == -1) {
       print('Car with ID $id not found.');
     } else {
       stdout.write('Enter new car brand: ');
@@ -180,32 +127,32 @@ carIndex == -1) {
 
       print('Car updated successfully.');
     }
-  }
 
-  ///deleteCar
-  ///
-  ///The asynchronous function to delete car
-  Future<void> deleteCar() async {
-    stdout.write('Enter car ID to delete: ');
-    String? input = stdin.readLineSync();
-    int id = int.tryParse(input ?? '') ?? 0;
+    ///deleteCar
+    ///
+    ///The asynchronous function to delete car
+    Future<void> deleteCar() async {
+      stdout.write('Enter car ID to delete: ');
+      String? input = stdin.readLineSync();
+      int id = int.tryParse(input ?? '') ?? 0;
 
-    int carIndex = cars.indexWhere((car) => car.id == id);
-    if (carIndex == -1) {
-      print('Car with ID $id not found.');
-    } else {
-      await _database.delete(
+      var car = await _database.query(
         'cars',
         where: 'id = ?',
         whereArgs: [id],
       );
 
-      print('Car deleted successfully.');
+      if (car.isEmpty) {
+        print('Car with ID $id not found.');
+      } else {
+        await _database.delete(
+          'cars',
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+
+        print('Car deleted successfully.');
+      }
     }
   }
-}
-
-void main() {
-  CarApp carApp = CarApp();
-  carApp.command();
 }
